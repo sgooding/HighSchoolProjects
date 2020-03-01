@@ -1,16 +1,16 @@
-name: C/C++ CI
-
-on: [push]
-
-jobs:
+version: 2
+jobs: 
   build:
-
-    runs-on: ubuntu-latest
-    
+    docker:
+      - image: "circleci/buildpack-deps"
     steps:
-    - uses: actions/checkout@v2
-    - name: Install Dependencies
-      run: apt update && apt install freeglut3-dev cmake
-    - name: Build
-      run: mkdir build; cd build; cmake ..; make
-
+      - checkout
+      - run: 
+          name: Where are we
+          command: 'pwd; ls'
+      - run: 
+          name: Installing third party 
+          command: 'apt update && apt install freglut3-dev cmake'
+      - run:
+          name: Build raytracer
+          command: 'mkdir build; cd build; cmake ..; make'
