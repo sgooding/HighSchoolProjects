@@ -31,60 +31,74 @@ using namespace std;
 #include <apvector.h>
 #include <apstring.h>
 
+#include <map>
+
 using namespace std;
+
+
+class ImageMap
+{
+    public:
+
+        void LoadImages();
+
+        const Image& GetImage(const std::string& name);
+
+    private:
+        std::map<std::string,Image> mImages;
+};
+
+void ImageMap::LoadImages()
+{
+    const std::vector<std::string> images = { 
+        "ColoradoSprings.jpg", 
+		"GunBase1.jpg",
+		"CanonCity.jpg",
+		"FireExplosion.jpg",
+		"Man1.jpg",
+		"Man2.jpg",
+		"Florence.jpg",
+		"Pueblo.jpg"};
+    for(auto n: images)
+        mImages[n] = Image(n,Image::JPEG);
+}
+
+const Image& ImageMap::GetImage(const std::string& name)
+{
+    return mImages[name];
+}
+
+double DEG2RAD(const double& DEG) 
+{ 
+    return DEG*M_PI/180.0; 
+}
 
 class Projectile
 {
+    Window testWindow;
+    Window helpWindow;
 
-	int iVelocity=75, initialHeight = 300;
-	double iAngle = (60*3.1415926535897932)/180;
+	int iVelocity;
+    int initialHeight;
+	double iAngle;
 	std::string currentCity;
 	Font gFont;
 
-
-
-	// Function to wait for a mouse click and clear the screen
-	//void WaitNClear(Window &inputWindow);
-	//void DrawActionWindow(Window &actionWindow);
-	//apvector <char> DisplayPrompt(Window &promptWindow);
-	//bool HandlePrompt (Window &handleWindow ,
-//			apvector<char> &handlePrompt ,
-	//		Window &myWindow);
-	//void DrawCities(Window &instWindow, Window &mywindow);
-	//void ClearActionWindow(Window &actionWindow);
-	//void Instructions(Window &handleWindow, Window &myWindow);
-	//int  ArrayToInteger (apvector<char> &Array,Window &handleWindow);
-	//void Calculation(Window &actionWindow,Window &myWindow);
-	//void ClearPromptWindow(Window &promptWindow);
-	//void UpdateVariableState(Window &actionWindow);
-	//bool CheckTownLocation(Window &actionWindow, int x2,int y2);
-	//void DrawGun(Window &actionWindow);
-	//void DrawImage(Window &actionWindow);
-	//void RunningPeople(Window &actionWindow);
-
-	Image baseImage;
-	Image gBurnImage;
-	Image florence,springs, canon, pueblo, school;
-	Image* gCurrentImage;
+    ImageMap mImageMap;
 
 public:
 	Projectile() :
+        testWindow(600, 440,"Projectile"),
+		helpWindow(600, 440,"help"),
 		iVelocity(75),
 		initialHeight(300),
+        iAngle(DEG2RAD(60.0)),
 		currentCity("ColoradoSprings.jpg"),
-		gFont(Font::ROMAN,12),
-		baseImage("GunBase1.jpg",Image::JPEG),
-		canon("CanonCity.jpg",Image::JPEG),
-		gBurnImage("FireExplosion.jpg",Image::JPEG),
-		gManImage("Man1.jpg",Image::JPEG),
-		gMan2Image("Man2.jpg",Image::JPEG),
-		florence("Florence.jpg",Image::JPEG),
-		springs("ColoradoSprings.jpg",Image::JPEG),
-		pueblo("Pueblo.jpg",Image::JPEG),
-		gCurrentImage(&canon)
+		gFont(Font::ROMAN,10)
 	{
-
+        mImageMap.LoadImages();
 	}
+
 	~Projectile()
 	{
 		exit(0);
@@ -93,87 +107,58 @@ public:
 	void Run()
 	{
 		apvector <char> promptString;
-		bool Quit;
 
-		// Create a new window 600 by 440 in size
-		Window testWindow(600, 440,"Projectile");
-		testWindow.waitForKeyboardEvent();
-		DrawActionWindow(testWindow);
+		DrawActionWindow();
+		Instructions();
 
-		//Instructions(testWindow,myWindow);
-
-
-		UpdateVariableState(testWindow);
-		DrawImage(testWindow);
+		UpdateVariableState();
+		DrawCity(testWindow);
 		DrawGun(testWindow);
-		testWindow.drawImage(baseImage, 0, 300);
 
-		do
+		bool quit(false);
+		while(not quit)
 		{
-			promptString = DisplayPrompt(testWindow);
-			Quit = HandlePrompt(testWindow,promptString,testWindow);
-			std::cout << "Quit: " << Quit << std::endl;
-
-		}while(!Quit);
+			promptString = DisplayPrompt();
+			quit = HandlePrompt(testWindow,promptString,testWindow);
+		}
 
 		testWindow.drawText(Style::BLACK,gFont,200,150,"HAVE A GREAT DAY :)");
-		testWindow.drawText(Style::BLACK,gFont,200,200,"click mouse anywhere to exit");
+		testWindow.drawText(Style::BLACK,gFont,200,200,"Hit <ENTER> Quit");
 		testWindow.waitForKeyboardEvent();
 
 	}
+
 private:
 
-	void WaitNClear(Window &inputWindow)
+	void DrawActionWindow()
 	{
-		int iX, iY;
-
-
-		//inputWindow.SetPen(BLACK);
-		//inputWindow.SetFont(16, BOLD, SWISS);
-		inputWindow.drawText(Style::BLACK, gFont, inputWindow.getWidth()/2 - 100, inputWindow.getHeight() - 25, "Click mouse to continue...");
-
-		// Flush the mouse queue
-		inputWindow.flushMouseQueue();
-
-		// Ignore return value since we don't care what type of click it was
-		inputWindow.waitForMouseEvent();
-		iX = inputWindow.getMouseX();
-		iY = inputWindow.getMouseY();
-
-		// Set the brush and pen white so we can clear the background
-
-		// Draw a rectangle that covers the entire window
-		inputWindow.drawRectangleFilled(Style::WHITE,0, 0, inputWindow.getWidth(), inputWindow.getHeight());
-	}
-
-	void DrawActionWindow(Window &actionWindow)
-	{
+		testWindow.drawRectangleFilled(Style::WHITE,0,0,testWindow.getWidth(),300);
 		Style pen(Color::BLACK,3);
-		actionWindow.drawRectangleOutline(pen,3,3,actionWindow.getWidth()-5,300-3);
+		testWindow.drawRectangleOutline(pen,3,3,testWindow.getWidth()-5,300-3);
 	}
 
-	apvector <char> DisplayPrompt(Window &promptWindow)
-		{
+	apvector <char> DisplayPrompt()
+    {
 		char keyPressed, prevChar;
 		int x = 100, y = 30, strLength = 0, i =0;
 		apvector<char> PromptString(0,0);
 
-		promptWindow.flushKeyboardQueue();
+		testWindow.flushKeyboardQueue();
 
-		promptWindow.drawText(Style::BLACK,gFont,0,y,"Sean $>");
+		testWindow.drawText(Style::BLACK,gFont,0,y,"Sean $>");
 
 		for(;;)
 		{
-			keyPressed = promptWindow.waitForKeyboardEvent().getValue();
+			keyPressed = testWindow.waitForKeyboardEvent().getValue();
 
 			//Return Key
 			if((keyPressed == 13) && (PromptString.length() > 0))
 			{
-				promptWindow.drawRectangleFilled(Style::WHITE,100,350,600,440);
+				testWindow.drawRectangleFilled(Style::WHITE,100,350,600,440);
 				stringstream ss; ss << PromptString[0];
-				promptWindow.drawText(Style::BLACK,gFont,5,5+x,ss.str());
-				ClearPromptWindow(promptWindow);
-				promptWindow.drawText(Style::BLACK,gFont,0,0,"Working...");
+				testWindow.drawText(Style::BLACK,gFont,5,5+x,ss.str());
+				ClearPromptWindow();
+				testWindow.drawText(Style::BLACK,gFont,0,0,"Working...");
 				return PromptString;
 			}
 
@@ -184,8 +169,8 @@ private:
 						and x > 100 )
 				{
 					x-=10;
-					promptWindow.drawRectangleFilled(Style::WHITE,x,y,x+20,y+20);
-					promptWindow.drawText(Style::BLACK,gFont,x,y,"_");
+					testWindow.drawRectangleFilled(Style::WHITE,x,y,x+20,y+20);
+					testWindow.drawText(Style::BLACK,gFont,x,y,"_");
 					PromptString.resize(PromptString.length()-1);
 				}
 
@@ -195,9 +180,9 @@ private:
 					{
 					case ' ':
 					{
-						promptWindow.drawRectangleFilled(Style::WHITE,x-2,y+15,x+10,y+30);
+						testWindow.drawRectangleFilled(Style::WHITE,x-2,y+15,x+10,y+30);
 						x+=10;
-						promptWindow.drawText(Style::BLACK,gFont,x,y,"_");
+						testWindow.drawText(Style::BLACK,gFont,x,y,"_");
 						break;
 					}
 					case 13:
@@ -207,34 +192,34 @@ private:
 						if(x > 100)
 						{
 							x-=10;
-							promptWindow.drawRectangleFilled(Style::WHITE,x,y,x+20,y+20);
-							promptWindow.drawText(Style::BLACK,gFont,x,y,"_");
+							testWindow.drawRectangleFilled(Style::WHITE,x,y,x+20,y+20);
+							testWindow.drawText(Style::BLACK,gFont,x,y,"_");
 							PromptString.resize(PromptString.length()-1);
 						}
 						break;
 					default:
 					{
-						promptWindow.drawRectangleFilled(Style::WHITE,x-2,y+15,x+10,y+30);
+						testWindow.drawRectangleFilled(Style::WHITE,x-2,y+15,x+10,y+30);
 						PromptString.resize(PromptString.length()+1);
 						PromptString[PromptString.length()-1] = keyPressed;
 						stringstream ss; ss << keyPressed;
-						promptWindow.drawText(Style::BLACK,gFont,x,y,ss.str());
+						testWindow.drawText(Style::BLACK,gFont,x,y,ss.str());
 						x+=10;
-						promptWindow.drawText(Style::BLACK,gFont,x,y,"_");
+						testWindow.drawText(Style::BLACK,gFont,x,y,"_");
 					}
 					}
 				}
 			}
 			else
 			{
-				promptWindow.drawText(Style::BLACK,gFont,5,5,"Click on Window to Quit!");
+				testWindow.drawText(Style::BLACK,gFont,5,5,"Click on Window to Quit!");
 			}
 
 			prevChar = keyPressed;
 		}
 
 		return PromptString;
-		}
+    }
 
 
 
@@ -248,29 +233,29 @@ private:
 		if(handlePrompt[0] == 's')
 		{
 			DrawCities(handleWindow,myWindow);
-			DrawImage(handleWindow);
+			DrawCity(handleWindow);
 		}
 		if(handlePrompt[0] == 'v')
 		{
-			iVelocity = ArrayToInteger(handlePrompt,handleWindow);
-			UpdateVariableState(handleWindow);
+			iVelocity = ArrayToInteger(handlePrompt);
+			UpdateVariableState();
 			Calculation(handleWindow,myWindow);
 		}
 
 		if(handlePrompt[0] == 'h')
 		{
-			Instructions(handleWindow,myWindow);
+			Instructions();
 		}
 
 		if(handlePrompt[0] == 'a')
 		{
-			iAngle = ArrayToInteger(handlePrompt, handleWindow);
-			iAngle = (iAngle*3.1415926535897932)/180;
-			UpdateVariableState(handleWindow);
-			ClearPromptWindow(myWindow);
+			iAngle = ArrayToInteger(handlePrompt);
+			iAngle = DEG2RAD(iAngle);
+			UpdateVariableState();
+			ClearPromptWindow();
 			ClearActionWindow(handleWindow);
 			DrawGun(handleWindow);
-			DrawImage(handleWindow);
+			DrawCity(handleWindow);
 		}
 		if(handlePrompt[0] == 'c')
 		{
@@ -285,17 +270,17 @@ private:
 				ClearActionWindow(handleWindow);
 			}
 
-			ClearPromptWindow(myWindow);
+			ClearPromptWindow();
 		}
 
 		if(handlePrompt[0] == 'y')
 		{
-			initialHeight = ArrayToInteger(handlePrompt, handleWindow);
+			initialHeight = ArrayToInteger(handlePrompt);
 			initialHeight = 300 - initialHeight;
-			UpdateVariableState(handleWindow);
-			ClearPromptWindow(myWindow);
+			UpdateVariableState();
+			ClearPromptWindow();
 			ClearActionWindow(handleWindow);
-			DrawImage(handleWindow);
+			DrawCity(handleWindow);
 			DrawGun(handleWindow);
 		}
 
@@ -324,11 +309,10 @@ private:
 
 		ClearActionWindow(instWindow);
 
-		instWindow.drawText(Style::BLACK,gFont,150,50,"(1) Canon City");
-		instWindow.drawText(Style::BLACK,gFont,150,70,"(2) Florence");
-		instWindow.drawText(Style::BLACK,gFont,150,90,"(3) Pueblo");
+		instWindow.drawText(Style::BLACK,gFont,150,50, "(1) Canon City");
+		instWindow.drawText(Style::BLACK,gFont,150,70, "(2) Florence");
+		instWindow.drawText(Style::BLACK,gFont,150,90, "(3) Pueblo");
 		instWindow.drawText(Style::BLACK,gFont,150,110,"(4) Colorado Springs");
-
 		instWindow.drawText(Style::BLACK,gFont,100,200,"Select Your City");
 		x = myWindow.waitForKeyboardEvent().getValue();
 
@@ -361,72 +345,44 @@ private:
 
 	void ClearActionWindow(Window &actionWindow)
 	{
-		actionWindow.drawRectangleFilled(Style::WHITE,0,0,actionWindow.getWidth()-5,300);
+		actionWindow.drawRectangleFilled(Style::WHITE,0,0,actionWindow.getWidth(),300);
+		actionWindow.drawRectangleOutline(Style::BLACK,0,0,actionWindow.getWidth(),300);
 	}
 
 
-	void Instructions(Window &handleWindow,Window &myWindow)
+	void Instructions()
 	{
-		char x;
-
-		const int w(handleWindow.getWidth());
-		const int h(handleWindow.getHeight());
-		// not sure what this is for
-		Image testImage( handleWindow.createImage(0, 0,w,h));
-
-		ClearActionWindow(handleWindow);
-
+        helpWindow.show();
+        helpWindow.drawRectangleFilled(Style(Color::WHITE),0,0,helpWindow.getWidth(),helpWindow.getHeight());
 		Style pen = Style(Color::BLACK,2);
-		handleWindow.drawText(Style::BLACK,gFont,100,50,"The Commands Are:");
-		handleWindow.drawLine(pen,100,70,270,70);
-		handleWindow.drawText(Style::BLACK,gFont,100,80,"(s) Select City");
-		handleWindow.drawText(Style::BLACK,gFont,100,100,"(v integer) Velocity and Value");
-		handleWindow.drawText(Style::BLACK,gFont,100,120,"(a angle) Angle and Angle in Degrees");
-		handleWindow.drawText(Style::BLACK,gFont,100,140,"(y integer) Vertical Height of Gun");
-		handleWindow.drawText(Style::BLACK,gFont,100,160,"(q) Quit");
-		handleWindow.drawText(Style::BLACK,gFont,100,180,"Example: v60 is a velocity of 60 m/s");
-
-		handleWindow.drawText(Style::BLACK,gFont,100,200,"press any key to quit...");
-
-
-		handleWindow.drawImage(canon, 50, 50);
-
-
-		std::cout << "Wait for keyboard event" << std::endl;
-		myWindow.waitForKeyboardEvent();
-		std::cout << "Done." << std::endl;
-		ClearActionWindow(handleWindow);
-
-		std::cout << "Draw testImage: " << testImage << std::endl;
-#if 0
-		handleWindow.drawImage(testImage, 0, 0,
-				Transform( (int)(testImage.getWidth()), (int)(testImage.getHeight())));
-#else
-		//handleWindow.drawImage(testImage, 10, 10);
-#endif
-
+		helpWindow.drawText(Style::BLACK,gFont,100,50,"The Commands Are:");
+		helpWindow.drawLine(pen,100,70,270,70);
+		helpWindow.drawText(Style::BLACK,gFont,100,80,"(s) Select City");
+		helpWindow.drawText(Style::BLACK,gFont,100,100,"(v integer) Velocity and Value");
+		helpWindow.drawText(Style::BLACK,gFont,100,120,"(a angle) Angle and Angle in Degrees");
+		helpWindow.drawText(Style::BLACK,gFont,100,140,"(y integer) Vertical Height of Gun");
+		helpWindow.drawText(Style::BLACK,gFont,100,160,"(q) Quit");
+		helpWindow.drawText(Style::BLACK,gFont,100,180,"Example: v60 is a velocity of 60 m/s");
+		helpWindow.drawText(Style::BLACK,gFont,100,200,"press any key to quit...");
+		helpWindow.drawImage(mImageMap.GetImage("CanonCity.jpg"), 50, 50);
+		helpWindow.waitForKeyboardEvent();
+        helpWindow.hide();
 	}
 
-	int ArrayToInteger (apvector<char> &Array,Window &handleWindow)
+	int ArrayToInteger(apvector<char> &Array)
 	{
 		int Exponent= Array.length()-2,Integer = 0;
 
-
 		for(int i = 1; i<Array.length(); i++)
 		{
-			//handleWindow.DrawCharacter(10,10*i,Array[i]);
 			Integer += (Array[i]-48)*(pow(10,Exponent));
 			Exponent-=1;
 		}
-
-		//	handleWindow.DrawInteger(100,100,Integer);
-
 		return Integer;
 	}
 
 	void Calculation(Window &actionWindow, Window &myWindow)
 	{
-		std::cout << "Calculation" << std::endl;
 		double x1=0;
 		double x2=0;
 		double y1=initialHeight;
@@ -445,23 +401,14 @@ private:
 		DrawGun(actionWindow);
 
 		std::cout << "Draw Image" << std::endl;
-		DrawImage(actionWindow);
-
-
-		//x1 = cos(iAngle)*30;
-		//y1 = y1-(sin(iAngle)*30);
+		DrawCity(actionWindow);
 
 
 		vertVel = -iVelocity*sin(iAngle);
 		horzVel = iVelocity*cos(iAngle);
 
-		cout<<iVelocity<<"   "<<vertVel;
 		actionWindow.flushMouseQueue();
 
-		//actionWindow.drawRectangleFilled(Style(Color::BLACK,1),250,400,300,500);
-		//actionWindow.drawText(Style::BLACK,gFont,250,400,"Vert Velocity: " + Window::numberToString(vertVel));
-
-		std::cout << "Initial: " << time << " : " << y2 << std::endl;
 		double dt(0.1);
 		for(double time = 0; time <= 20.0; time += dt)
 		{
@@ -503,7 +450,7 @@ private:
 			count++;
 			if(count == 1)
 			{
-				UpdateVariableState(actionWindow);
+				UpdateVariableState();
 				actionWindow.drawRectangleFilled(Style(Color::WHITE,1),200,400,300,300);
 				actionWindow.drawText(Style::BLACK,gFont,200,400,Window::numberToString(300 - y2));
 				count = 0;
@@ -517,7 +464,7 @@ private:
 		}
 
 		actionWindow.drawText(Style::BLACK,gFont,100,200,"BAM!");
-		UpdateVariableState(actionWindow);
+		UpdateVariableState();
 
 		if(!destroyed)
 		{
@@ -529,44 +476,36 @@ private:
 
 		actionWindow.drawText(Style::BLACK,gFont,200,353,"MAX HEIGHT = " );
 		actionWindow.drawText(Style::BLACK,gFont,440,353,Window::numberToString(maxHeight));
-
-		//ClearPromptWindow(myWindow);
-
 	}
 
-	void ClearPromptWindow(Window &promptWindow)
+	void ClearPromptWindow()
 	{
 		Style pen(Color::WHITE);
-		promptWindow.drawRectangleFilled(pen,
+		testWindow.drawRectangleFilled(pen,
 				0,0,
-				promptWindow.getWidth(),promptWindow.getHeight());
+				testWindow.getWidth(),testWindow.getHeight());
 	}
 
-	void UpdateVariableState(Window &actionWindow)
+	void UpdateVariableState()
 	{
-		actionWindow.drawRectangleFilled(Style::WHITE,0,300,actionWindow.getWidth(),actionWindow.getHeight());
-
-		actionWindow.drawText(Style::BLACK,gFont,0,311,"ANGLE = ");
-
+		testWindow.drawRectangleFilled(Style::WHITE,0,300,testWindow.getWidth(),testWindow.getHeight());
+		testWindow.drawText(Style::BLACK,gFont,0,311,"ANGLE = ");
 		{
 			std::stringstream ss; ss << ((iAngle * 180)/3.1415926535897932);
-			actionWindow.drawText(Style::BLACK,gFont,100,311,ss.str());
+			testWindow.drawText(Style::BLACK,gFont,100,311,ss.str());
 		}
 
-		actionWindow.drawText(Style::BLACK,gFont,0,333,"VELOCITY = ");
+		testWindow.drawText(Style::BLACK,gFont,0,333,"VELOCITY = ");
 		{
 			std::stringstream ss; ss << iVelocity;
-			actionWindow.drawText(Style::BLACK,gFont,100,333,ss.str());
+			testWindow.drawText(Style::BLACK,gFont,100,333,ss.str());
 		}
 	}
-
-
 
 	bool CheckTownLocation(Window &actionWindow,int x2,int y2)
 	{
-
-		Image& testImage(*gCurrentImage);
-		Image& burnImage(gBurnImage);
+		const Image& testImage(mImageMap.GetImage(currentCity));
+		const Image& burnImage(mImageMap.GetImage("FireExplosion.jpg"));
 
 		if (((x2 >= 320) && (x2 <=320+testImage.getWidth())) &&
 				( (y2 >= (300 - testImage.getHeight())) && (y2 <= 300))
@@ -597,61 +536,28 @@ private:
 
 	void DrawGun(Window &actionWindow)
 	{
-		double gunx(cos(iAngle)*30);
-		double guny(sin(iAngle)*30);
+        double gun_length(30);
+		double gunx(cos(iAngle)*gun_length);
+		double guny(sin(iAngle)*gun_length);
 
-		Style pen = Style(Color::BLACK,1);
+		Style pen = Style(Color::BLACK,3);
 		actionWindow.drawLine(pen,0,initialHeight,gunx,initialHeight-guny );
 	}
 
-	void DrawImage(Window &actionWindow)
+	void DrawCity(Window &actionWindow)
 	{
-//		// Draw the image once
-//		if(not Image::checkImage(currentCity, Image::JPEG))
-//		{
-//			std::cout << "ERROR: The " << currentCity << " image did not load correctly." << std::endl;
-//		}
-//
-//		gCurrentImage = Image(currentCity, Image::JPEG);
-
 		Transform scale(0.5,0.5);
-
 		int x(320);
+        int y(300-(int)mImageMap.GetImage(currentCity).getHeight()*.5);
 
-
-		if(currentCity == "ColoradoSprings.jpg")
-		{
-			int y(300-(int)springs.getHeight()*.5);
-			actionWindow.drawImage(springs, x, y,scale);
-			gCurrentImage = &springs;
-		}
-		else if(currentCity == "Pueblo.jpg")
-		{
-			int y(300-(int)pueblo.getHeight()*.5);
-			actionWindow.drawImage(pueblo,x,y,scale);
-			gCurrentImage = &pueblo;
-		}
-		else if(currentCity == "CanonCity.jpg")
-		{
-			int y(300-(int)canon.getHeight()*.5);
-			actionWindow.drawImage(canon,x,y,scale);
-			gCurrentImage = &canon;
-		}
-		else if(currentCity == "Florence.jpg")
-		{
-			int y(300-(int)florence.getHeight()*.5);
-			actionWindow.drawImage(florence,x,y,scale);
-			gCurrentImage = &florence;
-		}
+		actionWindow.drawImage(mImageMap.GetImage(currentCity), x, y,scale);
 	}
 
-	Image gManImage;
-	Image gMan2Image;
 
 	void RunningPeople(Window &actionWindow)
 	{
-		Image& manImage(gManImage);
-		Image& man2Image(gMan2Image);//"Man2.jpg",Image::JPEG);
+		const Image& manImage(mImageMap.GetImage("Man1.jpg"));
+		const Image& man2Image(mImageMap.GetImage("Man2.jpg"));
 
 		for(int i = 0;i<=25;i++)
 		{
@@ -679,9 +585,6 @@ private:
 			}
 
 			usleep(100);
-
-
-
 		}
 	}
 };
