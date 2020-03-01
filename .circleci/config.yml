@@ -10,7 +10,7 @@ jobs:
           command: 'pwd; ls'
       - run: 
           name: Installing third party 
-          command: 'sudo apt update && sudo apt install freglut3-dev cmake'
+          command: 'sudo apt update && sudo apt install freeglut3-dev cmake'
       - run:
           name: Build raytracer
           command: 'mkdir build; cd build; cmake ..; make'
