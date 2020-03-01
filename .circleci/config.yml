@@ -12,5 +12,8 @@ jobs:
           name: Installing third party 
           command: 'sudo apt update && sudo apt install freeglut3-dev cmake'
       - run:
-          name: Build raytracer
-          command: 'mkdir build; cd build; cmake ..; make'
+          name: Build Projectile
+          command: 'mkdir build; cd build; cmake ..; make;'
+      - store_artifacts:
+          path: 'build/Projectile/Projectile'
+          
