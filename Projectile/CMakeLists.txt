@@ -9,7 +9,9 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}
 
 ## 1. Compile...
 add_executable( Projectile
-                Projectile.cpp )
+                main.cpp
+                Projectile.cpp
+                ImageMap.cpp )
 
 find_package (PkgConfig REQUIRED)
 

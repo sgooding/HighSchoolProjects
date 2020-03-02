@@ -139,8 +139,8 @@ char& apstring::operator[](int k)
 {
     if (k < 0 || myLength <= k)
     {
-        cerr << "index out of range: " << k << " string: " << myCstring
-            << endl;
+        std::cerr << "index out of range: " << k << " string: " << myCstring
+            << std::endl;
         assert(0 <= k && k < myLength);
     }
     return myCstring[k];
@@ -152,14 +152,14 @@ char apstring::operator[](int k) const
 {
     if (k < 0 || myLength <= k)
     {
-        cerr << "index out of range: " << k << " string: " << myCstring
-            << endl;
+        std::cerr << "index out of range: " << k << " string: " << myCstring
+            << std::endl;
         assert(0 <= k && k < myLength);
     }
     return myCstring[k];
 }
 
-ostream& operator <<(ostream & os, const apstring & str)
+std::ostream& operator <<(std::ostream & os, const apstring & str)
 //postcondition: str is written to output stream os
 {
     return os << str.c_str();

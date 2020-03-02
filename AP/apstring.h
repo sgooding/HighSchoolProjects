@@ -63,9 +63,9 @@ class apstring
 //
 // I/O functions
 
-ostream & operator << ( ostream & os, const apstring & str );
-istream & operator >> ( istream & is, apstring & str );
-istream & getline( istream & is, apstring & str );
+std::ostream & operator << ( std::ostream & os, const apstring & str );
+std::istream & operator >> ( std::istream & is, apstring & str );
+std::istream & getline( std::istream & is, apstring & str );
 
 // comparison operators:
 
