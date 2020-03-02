@@ -27,9 +27,11 @@ Projectile::Projectile() :
     helpWindow(600, 440,"help"),
     iVelocity(75),
     initialHeight(300),
-    iAngle(DEG2RAD(60.0)),
+    iAngleDeg(60),
     currentCity("ColoradoSprings.jpg"),
-    gFont(Font::ROMAN,10)
+    gFont(Font::ROMAN,11),
+	mFinalX(0.0),
+	mMaxHeight(0.0)
 {
     mImageMap.LoadImages();
 }
@@ -43,7 +45,8 @@ void Projectile::Run()
 {
     apvector <char> promptString;
 
-    DrawActionWindow();
+    ClearActionWindow();
+
     Instructions();
 
     UpdateVariableState();
@@ -63,14 +66,6 @@ void Projectile::Run()
 
 }
 
-//private:
-
-void Projectile::DrawActionWindow()
-{
-    testWindow.drawRectangleFilled(Style::WHITE,0,0,testWindow.getWidth(),300);
-    Style pen(Color::BLACK,3);
-    testWindow.drawRectangleOutline(pen,3,3,testWindow.getWidth()-5,300-3);
-}
 
 apvector <char> Projectile::DisplayPrompt()
 {
@@ -78,9 +73,7 @@ apvector <char> Projectile::DisplayPrompt()
     int x = 100, y = 30, strLength = 0, i =0;
     apvector<char> PromptString(0,0);
 
-    testWindow.flushKeyboardQueue();
-
-    testWindow.drawText(Style::BLACK,gFont,0,y,"Sean $>");
+    testWindow.drawText(Style::BLACK,gFont,5,y,"Sean $>");
 
     for(;;)
     {
@@ -175,6 +168,7 @@ bool Projectile::HandlePrompt ( Window &handleWindow ,
         iVelocity = ArrayToInteger(handlePrompt);
         UpdateVariableState();
         Calculation(handleWindow,myWindow);
+        DrawFinalResults();
     }
 
     if(handlePrompt[0] == 'h')
@@ -184,13 +178,13 @@ bool Projectile::HandlePrompt ( Window &handleWindow ,
 
     if(handlePrompt[0] == 'a')
     {
-        iAngle = ArrayToInteger(handlePrompt);
-        iAngle = DEG2RAD(iAngle);
+        iAngleDeg = ArrayToInteger(handlePrompt);
         UpdateVariableState();
         ClearPromptWindow();
-        ClearActionWindow(handleWindow);
+        ClearActionWindow();
         DrawGun(handleWindow);
         DrawCity(handleWindow);
+        UpdateVariableState();
     }
     if(handlePrompt[0] == 'c')
     {
@@ -202,7 +196,7 @@ bool Projectile::HandlePrompt ( Window &handleWindow ,
 
         if(answer == 'y')
         {
-            ClearActionWindow(handleWindow);
+            ClearActionWindow();
         }
 
         ClearPromptWindow();
@@ -214,7 +208,7 @@ bool Projectile::HandlePrompt ( Window &handleWindow ,
         initialHeight = 300 - initialHeight;
         UpdateVariableState();
         ClearPromptWindow();
-        ClearActionWindow(handleWindow);
+        ClearActionWindow();
         DrawCity(handleWindow);
         DrawGun(handleWindow);
     }
@@ -242,7 +236,7 @@ void Projectile::DrawCities(Window &instWindow, Window &myWindow)
 
     char x;
 
-    ClearActionWindow(instWindow);
+    ClearActionWindow();
 
     instWindow.drawText(Style::BLACK,gFont,150,50, "(1) Canon City");
     instWindow.drawText(Style::BLACK,gFont,150,70, "(2) Florence");
@@ -274,14 +268,14 @@ void Projectile::DrawCities(Window &instWindow, Window &myWindow)
         }
     } while(bad == 1);
 
-    ClearActionWindow(instWindow);
+    ClearActionWindow();
 
 }
 
-void Projectile::ClearActionWindow(Window &actionWindow)
+void Projectile::ClearActionWindow()
 {
-    actionWindow.drawRectangleFilled(Style::WHITE,0,0,actionWindow.getWidth(),300);
-    actionWindow.drawRectangleOutline(Style::BLACK,0,0,actionWindow.getWidth(),300);
+    testWindow.drawRectangleFilled(Style::WHITE,0,0,testWindow.getWidth(),300);
+    testWindow.drawRectangleOutline(Style(Color::BLACK,5),0,0,testWindow.getWidth(),300);
 }
 
 
@@ -325,22 +319,18 @@ void Projectile::Calculation(Window &actionWindow, Window &myWindow)
     int count = 0;
     bool destroyed(false);
 
-    ClearActionWindow(actionWindow);
+    ClearActionWindow();
 
     double initialVelocity = iVelocity;
     double vertVel;
     double y2=y1;
     double horzVel;
 
-    std::cout << "Draw Gun" << std::endl;
     DrawGun(actionWindow);
-
-    std::cout << "Draw Image" << std::endl;
     DrawCity(actionWindow);
 
-
-    vertVel = -iVelocity*sin(iAngle);
-    horzVel = iVelocity*cos(iAngle);
+    vertVel = -iVelocity*sin(DEG2RAD(iAngleDeg));
+    horzVel = iVelocity*cos(DEG2RAD(iAngleDeg));
 
     actionWindow.flushMouseQueue();
 
@@ -361,9 +351,9 @@ void Projectile::Calculation(Window &actionWindow, Window &myWindow)
 
         Style pen(Color::RED,3);
         actionWindow.drawLine(pen,x1,y1,x2,y2);
-        std::cout << "T: " << time
-            << " (x1,y1): " << x1 << "," << y1
-            << " (x2,y2): " << x2 << "," << y2 << std::endl;
+        //std::cout << "T: " << time
+        //    << " (x1,y1): " << x1 << "," << y1
+        //    << " (x2,y2): " << x2 << "," << y2 << std::endl;
 
         if(maxHeight <  300 - y2)
         {
@@ -406,11 +396,20 @@ void Projectile::Calculation(Window &actionWindow, Window &myWindow)
         RunningPeople(actionWindow);
     }
 
-    actionWindow.drawText(Style::BLACK,gFont,200,321,"HORIZONTAL DISTANCE = " );
-    actionWindow.drawText(Style::BLACK,gFont,440,321, Window::numberToString(x2));
+    mFinalX = x2;
+    mMaxHeight = maxHeight;
 
-    actionWindow.drawText(Style::BLACK,gFont,200,353,"MAX HEIGHT = " );
-    actionWindow.drawText(Style::BLACK,gFont,440,353,Window::numberToString(maxHeight));
+}
+
+void Projectile::DrawFinalResults()
+{
+	int y0(50);
+    testWindow.drawRectangleFilled(Style(Color::WHITE,1),200,321+y0,440,400+y0);
+    testWindow.drawText(Style::BLACK,gFont,200,321+y0,"HORIZONTAL DISTANCE = " );
+    testWindow.drawText(Style::BLACK,gFont,440,321+y0, Window::numberToString(mFinalX));
+
+    testWindow.drawText(Style::BLACK,gFont,200,353+y0,"MAX HEIGHT = " );
+    testWindow.drawText(Style::BLACK,gFont,440,353+y0,Window::numberToString(mMaxHeight));
 }
 
 void Projectile::ClearPromptWindow()
@@ -423,18 +422,9 @@ void Projectile::ClearPromptWindow()
 
 void Projectile::UpdateVariableState()
 {
-    testWindow.drawRectangleFilled(Style::WHITE,0,300,testWindow.getWidth(),testWindow.getHeight());
-    testWindow.drawText(Style::BLACK,gFont,0,311,"ANGLE = ");
-    {
-        std::stringstream ss; ss << ((iAngle * 180)/3.1415926535897932);
-        testWindow.drawText(Style::BLACK,gFont,100,311,ss.str());
-    }
-
-    testWindow.drawText(Style::BLACK,gFont,0,333,"VELOCITY = ");
-    {
-        std::stringstream ss; ss << iVelocity;
-        testWindow.drawText(Style::BLACK,gFont,100,333,ss.str());
-    }
+    testWindow.drawRectangleFilled(Style::WHITE,0,320,testWindow.getWidth(),testWindow.getHeight());
+    testWindow.drawText(Style::BLACK,gFont,10,320,"ANGLE    = "+Window::numberToString(iAngleDeg));
+    testWindow.drawText(Style::BLACK,gFont,10,353,"VELOCITY = "+Window::numberToString(iVelocity));
 }
 
 bool Projectile::CheckTownLocation(Window &actionWindow,int x2,int y2)
@@ -453,7 +443,7 @@ bool Projectile::CheckTownLocation(Window &actionWindow,int x2,int y2)
                 (int)(testImage.getWidth() * .5), 300);
 
         int y_offset(0);
-        for(double dscale = 0; dscale <= 1; dscale=dscale + .05)
+        for(double dscale = 0; dscale <= .8; dscale += .05)
         {
             double scale = 0.5+dscale;
             double x_center = 0.5*(burnImage.getWidth()*scale);
@@ -472,8 +462,8 @@ bool Projectile::CheckTownLocation(Window &actionWindow,int x2,int y2)
 void Projectile::DrawGun(Window &actionWindow)
 {
     double gun_length(30);
-    double gunx(cos(iAngle)*gun_length);
-    double guny(sin(iAngle)*gun_length);
+    double gunx(cos(DEG2RAD(iAngleDeg))*gun_length);
+    double guny(sin(DEG2RAD(iAngleDeg))*gun_length);
 
     Style pen = Style(Color::BLACK,3);
     actionWindow.drawLine(pen,0,initialHeight,gunx,initialHeight-guny );
@@ -497,14 +487,16 @@ void Projectile::RunningPeople(Window &actionWindow)
     for(int i = 0;i<=25;i++)
     {
         usleep(100000);
-        Style pen(Color::WHITE,1);
+
+        // Clear running area
         actionWindow.drawRectangleFilled(
-                pen,
+                Style(Color::WHITE,1),
                 360,
                 289-((int)man2Image.getHeight()),
                 360+((int)man2Image.getWidth()+(25*10)),
                 299);
 
+        // Draw person
         if(i%2 == 0)
         {
             actionWindow.drawImage(manImage,
@@ -513,13 +505,10 @@ void Projectile::RunningPeople(Window &actionWindow)
         }
         else
         {
-
             actionWindow.drawImage(man2Image,
                     360+(i*10),
                     289-((int)manImage.getHeight()));
         }
-
-        usleep(100);
     }
 }
 

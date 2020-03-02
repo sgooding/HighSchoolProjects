@@ -9,10 +9,9 @@
 
 #include <CarnegieMellonGraphics.h>
 #include <ImageMap.h>
+
 #include <apvector.h>
 #include <apstring.h>
-
-#include <map>
 
 
 inline double DEG2RAD(const double& DEG) 
@@ -22,16 +21,6 @@ inline double DEG2RAD(const double& DEG)
 
 class Projectile
 {
-    Window testWindow;
-    Window helpWindow;
-
-	int iVelocity;
-    int initialHeight;
-	double iAngle;
-	std::string currentCity;
-	Font gFont;
-
-    ImageMap mImageMap;
 
 public:
 
@@ -42,8 +31,6 @@ public:
 	void Run();
 
 private:
-
-	void DrawActionWindow();
 	
 	apvector <char> DisplayPrompt();
     
@@ -53,7 +40,7 @@ private:
 
 	void DrawCities(Window &instWindow, Window &myWindow);
 
-	void ClearActionWindow(Window &actionWindow);
+	void ClearActionWindow();
 	
 	void Instructions();
 
@@ -73,5 +60,23 @@ private:
 
 	void RunningPeople(Window &actionWindow);
 	
+	void DrawFinalResults();
+
+    Window testWindow;
+    Window helpWindow;
+
+	int iVelocity;
+    int initialHeight;
+	int iAngleDeg;
+	std::string currentCity;
+	Font gFont;
+
+    ImageMap mImageMap;
+
+    double mFinalX;
+    double mMaxHeight;
+
+
+
 };
 #endif
