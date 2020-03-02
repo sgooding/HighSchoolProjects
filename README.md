@@ -1,9 +1,11 @@
+[![CircleCI](https://circleci.com/gh/sgooding/Raytracer.svg?style=svg)](https://circleci.com/gh/sgooding/HighSchoolProjects)
+
 HighSchoolProjects
 ==================
 
 Some very very old high school apps I wrote.
 
-![snapshot](https://github.com/sgooding/HighSchoolProjects/blob/refactor/images/snapshot.png)
+![snapshot](https://github.com/sgooding/HighSchoolProjects/blob/master/images/snapshot.png)
 
 Build instructions
 ```
