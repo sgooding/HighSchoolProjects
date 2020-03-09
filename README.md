@@ -9,7 +9,7 @@ Some very very old high school apps I wrote.
 
 Build instructions
 ```
-sudo apt install libjpeg62-dev freeglut3-dev cmake
+sudo apt install libglu1-mesa libjpeg62-dev freeglut3-dev cmake
 mkdir build
 cd build
 cmake ..
