@@ -15,6 +15,9 @@ find_package (PkgConfig REQUIRED)
 
 ## 2. Link...
 target_link_libraries( draw_test
+                        gltt
+                        ${OPENGL_LIBRARIES} 
+                        ${GLUT_LIBRARY} 
                        CMG2 )
 
 ## 3. Install...
