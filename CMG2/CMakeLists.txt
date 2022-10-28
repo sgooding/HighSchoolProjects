@@ -39,7 +39,7 @@ add_library(CMG2
 target_link_libraries(CMG2 LINK_PUBLIC
                         gltt
                         ${OPENGL_LIBRARIES} 
-                        ${GLUT_LIBRARY} 
+                        ${GLUT_LIBRARIES} 
                         jpeg
                         )
 
