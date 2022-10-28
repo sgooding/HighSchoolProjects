@@ -1,4 +1,4 @@
-
+![CMake](https://github.com/sgooding/HighSchoolProjects/workflows/CMake/badge.svg)
 
 HighSchoolProjects
 ==================
