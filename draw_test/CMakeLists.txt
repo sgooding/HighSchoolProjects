@@ -19,10 +19,7 @@ find_package (PkgConfig REQUIRED)
 
 ## 2. Link...
 target_link_libraries( draw_test
-                       CMG2
-                       ${OPENGL_LIBRARIES}
-                       ${GLUT_LIBRARY}
-                        )
+                       CMG2 )
 
 ## 3. Install...
 install( TARGETS draw_test
